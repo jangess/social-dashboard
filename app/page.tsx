@@ -58,7 +58,7 @@ export default async function OverviewPage({ searchParams }: PageProps) {
         {/* Chart + Top Posts */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-6">
           <div className="lg:col-span-3">
-            <EngagementChart data={feed} />
+            <EngagementChart data={feed} from={filters.from} to={filters.to} />
           </div>
           <div className="lg:col-span-2">
             <TopPosts posts={feed} />

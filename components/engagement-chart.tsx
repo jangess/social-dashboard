@@ -16,6 +16,8 @@ import type { DashboardFeedItem } from "@/lib/types";
 
 interface EngagementChartProps {
   data: DashboardFeedItem[];
+  from?: string; // yyyy-MM-dd
+  to?: string;   // yyyy-MM-dd
 }
 
 const METRICS = [
@@ -40,14 +42,14 @@ interface BucketData {
   posts: number;
 }
 
-function groupByTimeBucket(items: DashboardFeedItem[]): BucketData[] {
-  if (items.length === 0) return [];
-
-  // Determine date span to pick daily vs weekly grouping
-  const dates = items.map((i) => new Date(i.posted_at).getTime());
-  const spanDays = (Math.max(...dates) - Math.min(...dates)) / (1000 * 60 * 60 * 24);
+function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: string): BucketData[] {
+  // Determine range: use from/to props or fall back to data bounds
+  const rangeStart = from ? new Date(from) : items.length > 0 ? new Date(Math.min(...items.map((i) => new Date(i.posted_at).getTime()))) : new Date();
+  const rangeEnd = to ? new Date(to) : items.length > 0 ? new Date(Math.max(...items.map((i) => new Date(i.posted_at).getTime()))) : new Date();
+  const spanDays = (rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24);
   const useDaily = spanDays <= 30;
 
+  // Aggregate items into buckets
   const buckets: Record<
     string,
     { likes: number; comments: number; shares: number; saves: number; views: number; engTotal: number; count: number }
@@ -57,11 +59,11 @@ function groupByTimeBucket(items: DashboardFeedItem[]): BucketData[] {
     const date = new Date(item.posted_at);
     let key: string;
     if (useDaily) {
-      key = date.toISOString().split("T")[0];
+      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     } else {
       const weekStart = new Date(date);
       weekStart.setDate(date.getDate() - date.getDay());
-      key = weekStart.toISOString().split("T")[0];
+      key = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, "0")}-${String(weekStart.getDate()).padStart(2, "0")}`;
     }
 
     if (!buckets[key]) {
@@ -77,10 +79,27 @@ function groupByTimeBucket(items: DashboardFeedItem[]): BucketData[] {
     b.count += 1;
   }
 
-  return Object.entries(buckets)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, d]) => ({
-      label: new Date(key).toLocaleDateString("en-US", {
+  // Fill all days/weeks in the range so the chart has a continuous x-axis
+  const allKeys: string[] = [];
+  const cursor = new Date(rangeStart);
+  if (useDaily) {
+    while (cursor <= rangeEnd) {
+      allKeys.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  } else {
+    cursor.setDate(cursor.getDate() - cursor.getDay()); // align to week start
+    while (cursor <= rangeEnd) {
+      allKeys.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`);
+      cursor.setDate(cursor.getDate() + 7);
+    }
+  }
+
+  const empty = { likes: 0, comments: 0, shares: 0, saves: 0, views: 0, engTotal: 0, count: 0 };
+  return allKeys.map((key) => {
+    const d = buckets[key] || empty;
+    return {
+      label: new Date(key + "T12:00:00").toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       }),
@@ -91,11 +110,12 @@ function groupByTimeBucket(items: DashboardFeedItem[]): BucketData[] {
       views: d.views,
       engagement: d.count > 0 ? Number((d.engTotal / d.count).toFixed(2)) : 0,
       posts: d.count,
-    }));
+    };
+  });
 }
 
-export function EngagementChart({ data }: EngagementChartProps) {
-  const chartData = groupByTimeBucket(data);
+export function EngagementChart({ data, from, to }: EngagementChartProps) {
+  const chartData = groupByTimeBucket(data, from, to);
   const [active, setActive] = useState<Set<MetricKey>>(
     () => new Set(METRICS.filter((m) => m.defaultOn).map((m) => m.key))
   );

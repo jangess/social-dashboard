@@ -69,7 +69,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
         {/* Engagement Chart */}
         <div className="mb-8">
-          <EngagementChart data={feed} />
+          <EngagementChart data={feed} from={filters.from} to={filters.to} />
         </div>
 
         {/* Two columns */}

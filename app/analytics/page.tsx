@@ -31,7 +31,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
         <h1 className="text-lg font-semibold mb-4">Analytics</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
-          <EngagementChart data={feed} />
+          <EngagementChart data={feed} from={filters.from} to={filters.to} />
           <PlatformBreakdown data={feed} />
         </div>
 
