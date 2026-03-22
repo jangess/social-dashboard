@@ -14,7 +14,7 @@ export async function getDashboardFeed(filters?: Filters, limit = 200): Promise<
     query = query.gte("posted_at", filters.from);
   }
   if (filters?.to) {
-    query = query.lte("posted_at", filters.to);
+    query = query.lte("posted_at", `${filters.to}T23:59:59`);
   }
   if (filters?.postType) {
     query = query.eq("post_type", filters.postType);
