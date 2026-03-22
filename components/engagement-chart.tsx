@@ -29,8 +29,8 @@ const METRICS = [
 
 type MetricKey = (typeof METRICS)[number]["key"];
 
-interface WeekData {
-  week: string;
+interface BucketData {
+  label: string;
   likes: number;
   comments: number;
   shares: number;
@@ -40,51 +40,47 @@ interface WeekData {
   posts: number;
 }
 
-function groupByWeek(items: DashboardFeedItem[]): WeekData[] {
-  const weeks: Record<
+function groupByTimeBucket(items: DashboardFeedItem[]): BucketData[] {
+  if (items.length === 0) return [];
+
+  // Determine date span to pick daily vs weekly grouping
+  const dates = items.map((i) => new Date(i.posted_at).getTime());
+  const spanDays = (Math.max(...dates) - Math.min(...dates)) / (1000 * 60 * 60 * 24);
+  const useDaily = spanDays <= 30;
+
+  const buckets: Record<
     string,
-    {
-      likes: number;
-      comments: number;
-      shares: number;
-      saves: number;
-      views: number;
-      engTotal: number;
-      count: number;
-    }
+    { likes: number; comments: number; shares: number; saves: number; views: number; engTotal: number; count: number }
   > = {};
 
   for (const item of items) {
     const date = new Date(item.posted_at);
-    const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() - date.getDay());
-    const key = weekStart.toISOString().split("T")[0];
-
-    if (!weeks[key]) {
-      weeks[key] = {
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        saves: 0,
-        views: 0,
-        engTotal: 0,
-        count: 0,
-      };
+    let key: string;
+    if (useDaily) {
+      key = date.toISOString().split("T")[0];
+    } else {
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay());
+      key = weekStart.toISOString().split("T")[0];
     }
-    const w = weeks[key];
-    w.likes += item.likes || 0;
-    w.comments += item.comments || 0;
-    w.shares += item.shares || 0;
-    w.saves += item.saves || 0;
-    w.views += item.views || 0;
-    w.engTotal += item.engagement_rate || 0;
-    w.count += 1;
+
+    if (!buckets[key]) {
+      buckets[key] = { likes: 0, comments: 0, shares: 0, saves: 0, views: 0, engTotal: 0, count: 0 };
+    }
+    const b = buckets[key];
+    b.likes += item.likes || 0;
+    b.comments += item.comments || 0;
+    b.shares += item.shares || 0;
+    b.saves += item.saves || 0;
+    b.views += item.views || 0;
+    b.engTotal += item.engagement_rate || 0;
+    b.count += 1;
   }
 
-  return Object.entries(weeks)
+  return Object.entries(buckets)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([week, d]) => ({
-      week: new Date(week).toLocaleDateString("en-US", {
+    .map(([key, d]) => ({
+      label: new Date(key).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       }),
@@ -93,13 +89,13 @@ function groupByWeek(items: DashboardFeedItem[]): WeekData[] {
       shares: d.shares,
       saves: d.saves,
       views: d.views,
-      engagement: Number((d.engTotal / d.count).toFixed(2)),
+      engagement: d.count > 0 ? Number((d.engTotal / d.count).toFixed(2)) : 0,
       posts: d.count,
     }));
 }
 
 export function EngagementChart({ data }: EngagementChartProps) {
-  const chartData = groupByWeek(data);
+  const chartData = groupByTimeBucket(data);
   const [active, setActive] = useState<Set<MetricKey>>(
     () => new Set(METRICS.filter((m) => m.defaultOn).map((m) => m.key))
   );
@@ -171,7 +167,7 @@ export function EngagementChart({ data }: EngagementChartProps) {
             stroke="#f0f0f0"
           />
           <XAxis
-            dataKey="week"
+            dataKey="label"
             tick={{ fontSize: 11 }}
             tickLine={false}
             axisLine={false}
