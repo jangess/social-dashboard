@@ -77,21 +77,21 @@ export function AddClientForm() {
     });
   }
 
-  if (!isOpen) {
-    return (
+  return (
+    <div className="relative">
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => setIsOpen(!isOpen)}
         className="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5"
       >
         <Plus className="w-3.5 h-3.5" />
         Add Client
       </button>
-    );
-  }
 
-  return (
-    <div className="bg-white border rounded-xl p-4 mb-4">
-      <h3 className="text-sm font-semibold mb-3">New Client</h3>
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={reset} />
+          <div className="absolute right-0 top-full mt-2 z-50 w-[400px] bg-white border rounded-xl p-4 shadow-lg">
+            <h3 className="text-sm font-semibold mb-3">New Client</h3>
 
       {error && (
         <p className="text-xs text-red-600 bg-red-50 rounded-md px-2.5 py-1.5 mb-3">
@@ -192,6 +192,9 @@ export function AddClientForm() {
           {isPending ? "Creating…" : "Create Client"}
         </button>
       </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
