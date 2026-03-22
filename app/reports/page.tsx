@@ -5,8 +5,7 @@ import { PlatformBreakdown } from "@/components/platform-breakdown";
 import { TopPosts } from "@/components/top-posts";
 import { EngagementChart } from "@/components/engagement-chart";
 import { ReportSelector } from "@/components/report-selector";
-import { formatNumber, formatEngagement, formatDate } from "@/lib/utils";
-import type { Filters, Platform } from "@/lib/types";
+import { formatNumber, formatEngagement, formatDate, buildFilters } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +15,7 @@ interface PageProps {
 
 export default async function ReportsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const filters: Filters = {
-    client: params.client || undefined,
-    platform: (params.platform as Platform) || undefined,
-    from: params.from || undefined,
-    to: params.to || undefined,
-  };
+  const filters = buildFilters(params);
 
   const [clients, feed] = await Promise.all([
     getClients(),

@@ -6,8 +6,7 @@ import { EngagementChart } from "@/components/engagement-chart";
 import { TopPosts } from "@/components/top-posts";
 import { PlatformBreakdown } from "@/components/platform-breakdown";
 import { ClientSummary } from "@/components/client-summary";
-import { formatNumber, formatEngagement } from "@/lib/utils";
-import type { Filters, Platform } from "@/lib/types";
+import { formatNumber, formatEngagement, buildFilters } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +16,7 @@ interface PageProps {
 
 export default async function OverviewPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const filters: Filters = {
-    client: params.client || undefined,
-    platform: (params.platform as Platform) || undefined,
-    from: params.from || undefined,
-    to: params.to || undefined,
-  };
+  const filters = buildFilters(params);
 
   const [feed, clients] = await Promise.all([
     getDashboardFeed(filters),

@@ -7,6 +7,7 @@ import {
   formatNumber,
   formatEngagement,
   formatRelativeDate,
+  formatDate,
   engagementColor,
 } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -121,12 +122,7 @@ export function PostTable({ posts, showClient = true }: PostTableProps) {
                     </td>
                   )}
                   <td className="p-3">
-                    <div className="flex items-center gap-1.5">
-                      <PlatformBadge platform={post.platform} />
-                      <span className="text-xs text-muted-foreground">
-                        {post.username}
-                      </span>
-                    </div>
+                    <PlatformBadge platform={post.platform} />
                   </td>
                   <td className="p-3">
                     {post.post_type && (
@@ -136,7 +132,7 @@ export function PostTable({ posts, showClient = true }: PostTableProps) {
                     )}
                   </td>
                   <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
-                    {formatRelativeDate(post.posted_at)}
+                    {formatDate(post.posted_at)}
                   </td>
                   <td className="p-3 text-xs text-right tabular-nums">
                     {formatNumber(post.likes || 0)}

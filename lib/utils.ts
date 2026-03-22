@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow, format, subDays } from "date-fns";
+import type { Filters, Platform } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -38,5 +39,17 @@ export function trendIndicator(current: number, previous: number): { label: stri
   return {
     label: `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`,
     positive: pct >= 0,
+  };
+}
+
+/** Build filters from search params, defaulting to last 7 days when no date is set. */
+export function buildFilters(params: { client?: string; platform?: string; from?: string; to?: string }): Filters {
+  const today = format(new Date(), "yyyy-MM-dd");
+  const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd");
+  return {
+    client: params.client || undefined,
+    platform: (params.platform as Platform) || undefined,
+    from: params.from || sevenDaysAgo,
+    to: params.to || today,
   };
 }

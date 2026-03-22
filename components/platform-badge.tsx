@@ -9,7 +9,7 @@ export function PlatformBadge({ platform }: { platform: Platform }) {
         className="w-2 h-2 rounded-full"
         style={{ backgroundColor: config.color }}
       />
-      {config.icon}
+      {config.label}
     </span>
   );
 }

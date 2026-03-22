@@ -28,8 +28,10 @@ export function FilterBar({ clients }: FilterBarProps) {
   const searchParams = useSearchParams();
   const currentClient = searchParams.get("client") || "";
   const currentPlatform = searchParams.get("platform") || "";
-  const currentFrom = searchParams.get("from") || "";
-  const currentTo = searchParams.get("to") || "";
+  const defaultFrom = format(subDays(new Date(), 7), "yyyy-MM-dd");
+  const defaultTo = format(new Date(), "yyyy-MM-dd");
+  const currentFrom = searchParams.get("from") || defaultFrom;
+  const currentTo = searchParams.get("to") || defaultTo;
 
   const [customFrom, setCustomFrom] = useState(currentFrom);
   const [customTo, setCustomTo] = useState(currentTo);

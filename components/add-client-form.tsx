@@ -93,105 +93,105 @@ export function AddClientForm() {
           <div className="absolute right-0 top-full mt-2 z-50 w-[400px] bg-white border rounded-xl p-4 shadow-lg">
             <h3 className="text-sm font-semibold mb-3">New Client</h3>
 
-      {error && (
-        <p className="text-xs text-red-600 bg-red-50 rounded-md px-2.5 py-1.5 mb-3">
-          {error}
-        </p>
-      )}
+            {error && (
+              <p className="text-xs text-red-600 bg-red-50 rounded-md px-2.5 py-1.5 mb-3">
+                {error}
+              </p>
+            )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Client name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Acme Corp"
-            className="w-full text-sm border rounded-md px-2.5 py-1.5 bg-background"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Company name
-          </label>
-          <input
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Optional"
-            className="w-full text-sm border rounded-md px-2.5 py-1.5 bg-background"
-          />
-        </div>
-      </div>
-
-      {/* Social profiles */}
-      <div className="mb-3">
-        <label className="text-xs text-muted-foreground mb-1.5 block">
-          Social Profiles
-        </label>
-        <div className="space-y-2">
-          {profiles.map((profile) => (
-            <div key={profile.id} className="flex gap-2 items-center">
-              <select
-                value={profile.platform}
-                onChange={(e) =>
-                  updateProfile(profile.id, "platform", e.target.value)
-                }
-                className="text-sm border rounded-md px-2 py-1.5 bg-background w-32"
-              >
-                {PLATFORMS.map((p) => (
-                  <option key={p} value={p}>
-                    {PLATFORM_CONFIG[p].label}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={profile.username}
-                onChange={(e) =>
-                  updateProfile(profile.id, "username", e.target.value)
-                }
-                placeholder="username"
-                className="flex-1 text-sm border rounded-md px-2.5 py-1.5 bg-background"
-              />
-              {profiles.length > 1 && (
-                <button
-                  onClick={() => removeProfile(profile.id)}
-                  className="text-muted-foreground hover:text-red-500 transition-colors p-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Client name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Acme Corp"
+                  className="w-full text-sm border rounded-md px-2.5 py-1.5 bg-background"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Company name
+                </label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Optional"
+                  className="w-full text-sm border rounded-md px-2.5 py-1.5 bg-background"
+                />
+              </div>
             </div>
-          ))}
-        </div>
-        <button
-          onClick={addProfile}
-          className="text-xs text-primary hover:underline mt-1.5"
-        >
-          + Add another profile
-        </button>
-      </div>
 
-      {/* Actions */}
-      <div className="flex gap-2 justify-end">
-        <button
-          onClick={reset}
-          disabled={isPending}
-          className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={isPending}
-          className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-        >
-          {isPending ? "Creating…" : "Create Client"}
-        </button>
-      </div>
+            {/* Social profiles */}
+            <div className="mb-3">
+              <label className="text-xs text-muted-foreground mb-1.5 block">
+                Social Profiles
+              </label>
+              <div className="space-y-2">
+                {profiles.map((profile) => (
+                  <div key={profile.id} className="flex gap-2 items-center">
+                    <select
+                      value={profile.platform}
+                      onChange={(e) =>
+                        updateProfile(profile.id, "platform", e.target.value)
+                      }
+                      className="text-sm border rounded-md px-2 py-1.5 bg-background w-32"
+                    >
+                      {PLATFORMS.map((p) => (
+                        <option key={p} value={p}>
+                          {PLATFORM_CONFIG[p].label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={profile.username}
+                      onChange={(e) =>
+                        updateProfile(profile.id, "username", e.target.value)
+                      }
+                      placeholder="username"
+                      className="flex-1 text-sm border rounded-md px-2.5 py-1.5 bg-background"
+                    />
+                    {profiles.length > 1 && (
+                      <button
+                        onClick={() => removeProfile(profile.id)}
+                        className="text-muted-foreground hover:text-red-500 transition-colors p-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={addProfile}
+                className="text-xs text-primary hover:underline mt-1.5"
+              >
+                + Add another profile
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={reset}
+                disabled={isPending}
+                className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isPending}
+                className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {isPending ? "Creating…" : "Create Client"}
+              </button>
+            </div>
           </div>
         </>
       )}

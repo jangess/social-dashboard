@@ -5,7 +5,7 @@ import { EngagementChart } from "@/components/engagement-chart";
 import { PlatformBreakdown } from "@/components/platform-breakdown";
 import { ContentTypeChart } from "@/components/content-type-chart";
 import { PostingHeatmap } from "@/components/posting-heatmap";
-import type { Filters, Platform } from "@/lib/types";
+import { buildFilters } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -15,12 +15,7 @@ interface PageProps {
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const filters: Filters = {
-    client: params.client || undefined,
-    platform: (params.platform as Platform) || undefined,
-    from: params.from || undefined,
-    to: params.to || undefined,
-  };
+  const filters = buildFilters(params);
 
   const [feed, clients] = await Promise.all([
     getDashboardFeed(filters, 500),
