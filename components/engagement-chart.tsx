@@ -42,14 +42,34 @@ interface BucketData {
   posts: number;
 }
 
+/** Parse "yyyy-MM-dd" as local midnight (not UTC). */
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** Format date as "yyyy-MM-dd" using local time. */
+function toDateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: string): BucketData[] {
-  // Determine range: use from/to props or fall back to data bounds
-  const rangeStart = from ? new Date(from) : items.length > 0 ? new Date(Math.min(...items.map((i) => new Date(i.posted_at).getTime()))) : new Date();
-  const rangeEnd = to ? new Date(to) : items.length > 0 ? new Date(Math.max(...items.map((i) => new Date(i.posted_at).getTime()))) : new Date();
+  // Determine range using local dates
+  const rangeStart = from
+    ? parseLocalDate(from)
+    : items.length > 0
+      ? new Date(Math.min(...items.map((i) => new Date(i.posted_at).getTime())))
+      : new Date();
+  const rangeEnd = to
+    ? parseLocalDate(to)
+    : items.length > 0
+      ? new Date(Math.max(...items.map((i) => new Date(i.posted_at).getTime())))
+      : new Date();
+
   const spanDays = (rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24);
   const useDaily = spanDays <= 30;
 
-  // Aggregate items into buckets
+  // Aggregate items into buckets keyed by local date
   const buckets: Record<
     string,
     { likes: number; comments: number; shares: number; saves: number; views: number; engTotal: number; count: number }
@@ -59,11 +79,11 @@ function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: strin
     const date = new Date(item.posted_at);
     let key: string;
     if (useDaily) {
-      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      key = toDateKey(date);
     } else {
       const weekStart = new Date(date);
       weekStart.setDate(date.getDate() - date.getDay());
-      key = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, "0")}-${String(weekStart.getDate()).padStart(2, "0")}`;
+      key = toDateKey(weekStart);
     }
 
     if (!buckets[key]) {
@@ -79,18 +99,18 @@ function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: strin
     b.count += 1;
   }
 
-  // Fill all days/weeks in the range so the chart has a continuous x-axis
+  // Fill every day/week in range for a continuous x-axis
   const allKeys: string[] = [];
   const cursor = new Date(rangeStart);
   if (useDaily) {
     while (cursor <= rangeEnd) {
-      allKeys.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`);
+      allKeys.push(toDateKey(cursor));
       cursor.setDate(cursor.getDate() + 1);
     }
   } else {
-    cursor.setDate(cursor.getDate() - cursor.getDay()); // align to week start
+    cursor.setDate(cursor.getDate() - cursor.getDay());
     while (cursor <= rangeEnd) {
-      allKeys.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`);
+      allKeys.push(toDateKey(cursor));
       cursor.setDate(cursor.getDate() + 7);
     }
   }
@@ -99,7 +119,7 @@ function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: strin
   return allKeys.map((key) => {
     const d = buckets[key] || empty;
     return {
-      label: new Date(key + "T12:00:00").toLocaleDateString("en-US", {
+      label: parseLocalDate(key).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       }),
