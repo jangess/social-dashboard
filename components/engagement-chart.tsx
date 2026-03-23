@@ -142,17 +142,6 @@ function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: strin
 export function EngagementChart({ data, from, to }: EngagementChartProps) {
   const chartData = groupByTimeBucket(data, from, to);
 
-  // Debug: verify date fill is producing the full range
-  console.log("[EngagementChart]", {
-    from,
-    to,
-    fromIsUndefined: from === undefined,
-    toIsUndefined: to === undefined,
-    dataItems: data.length,
-    chartDataLen: chartData.length,
-    labels: chartData.map((d) => d.label),
-  });
-
   const [active, setActive] = useState<Set<MetricKey>>(
     () => new Set(METRICS.filter((m) => m.defaultOn).map((m) => m.key))
   );
@@ -185,12 +174,7 @@ export function EngagementChart({ data, from, to }: EngagementChartProps) {
   return (
     <div className="bg-white border rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">
-          Engagement Over Time
-          <span className="text-muted-foreground font-normal ml-1 text-xs">
-            ({chartData.length} pts, from={from ?? "none"})
-          </span>
-        </h3>
+        <h3 className="text-sm font-semibold">Engagement Over Time</h3>
       </div>
 
       {/* Metric toggles */}

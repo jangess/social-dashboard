@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import { Nav } from "@/components/nav";
 import "./globals.css";
@@ -22,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#fafafa]">
-        <Nav />
+        <Suspense fallback={null}>
+          <Nav />
+        </Suspense>
         {children}
       </body>
     </html>

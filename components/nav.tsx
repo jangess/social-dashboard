@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -14,11 +14,17 @@ const NAV_ITEMS = [
 
 export function Nav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Preserve filter params (from, to, client, platform) across tab navigation
+  const queryString = searchParams.toString();
+  const buildHref = (base: string) =>
+    queryString ? `${base}?${queryString}` : base;
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
-        <Link href="/" className="font-semibold text-base tracking-tight">
+        <Link href={buildHref("/")} className="font-semibold text-base tracking-tight">
           Social Dashboard
         </Link>
         <nav className="flex items-center gap-1">
@@ -30,7 +36,7 @@ export function Nav() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={buildHref(item.href)}
                 className={cn(
                   "px-3 py-1.5 text-sm rounded-md transition-colors",
                   isActive
