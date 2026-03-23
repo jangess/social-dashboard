@@ -136,6 +136,18 @@ function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: strin
 
 export function EngagementChart({ data, from, to }: EngagementChartProps) {
   const chartData = groupByTimeBucket(data, from, to);
+
+  // Debug: verify date fill is producing the full range
+  if (typeof window !== "undefined") {
+    console.log("[EngagementChart]", {
+      from,
+      to,
+      dataItems: data.length,
+      chartDataLen: chartData.length,
+      labels: chartData.map((d) => d.label),
+    });
+  }
+
   const [active, setActive] = useState<Set<MetricKey>>(
     () => new Set(METRICS.filter((m) => m.defaultOn).map((m) => m.key))
   );
@@ -257,6 +269,8 @@ export function EngagementChart({ data, from, to }: EngagementChartProps) {
               fillOpacity={0.15}
               stroke={m.color}
               strokeWidth={i === 0 ? 1.5 : 1}
+              dot={{ r: 1.5, fill: m.color, strokeWidth: 0 }}
+              isAnimationActive={false}
             />
           ))}
           {/* Line overlay for engagement rate */}
@@ -269,6 +283,7 @@ export function EngagementChart({ data, from, to }: EngagementChartProps) {
               strokeWidth={2}
               dot={{ r: 2.5, fill: "#f59e0b" }}
               activeDot={{ r: 4 }}
+              isAnimationActive={false}
             />
           )}
         </ComposedChart>
