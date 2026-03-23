@@ -53,20 +53,25 @@ function toDateKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: string): BucketData[] {
-  // Determine range using local dates
-  const rangeStart = from
-    ? parseLocalDate(from)
-    : items.length > 0
-      ? new Date(Math.min(...items.map((i) => new Date(i.posted_at).getTime())))
-      : new Date();
-  const rangeEnd = to
-    ? parseLocalDate(to)
-    : items.length > 0
-      ? new Date(Math.max(...items.map((i) => new Date(i.posted_at).getTime())))
-      : new Date();
+function defaultDateRange(): { from: string; to: string } {
+  const now = new Date();
+  const to = toDateKey(now);
+  const sevenAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+  return { from: toDateKey(sevenAgo), to };
+}
 
-  const spanDays = (rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24);
+function groupByTimeBucket(items: DashboardFeedItem[], from?: string, to?: string): BucketData[] {
+  // Always use concrete date boundaries (never derive from data timestamps)
+  const defaults = defaultDateRange();
+  const resolvedFrom = from || defaults.from;
+  const resolvedTo = to || defaults.to;
+
+  const rangeStart = parseLocalDate(resolvedFrom);
+  const rangeEnd = parseLocalDate(resolvedTo);
+
+  const spanDays = Math.round(
+    (rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24)
+  );
   const useDaily = spanDays <= 30;
 
   // Aggregate items into buckets keyed by local date
@@ -138,15 +143,15 @@ export function EngagementChart({ data, from, to }: EngagementChartProps) {
   const chartData = groupByTimeBucket(data, from, to);
 
   // Debug: verify date fill is producing the full range
-  if (typeof window !== "undefined") {
-    console.log("[EngagementChart]", {
-      from,
-      to,
-      dataItems: data.length,
-      chartDataLen: chartData.length,
-      labels: chartData.map((d) => d.label),
-    });
-  }
+  console.log("[EngagementChart]", {
+    from,
+    to,
+    fromIsUndefined: from === undefined,
+    toIsUndefined: to === undefined,
+    dataItems: data.length,
+    chartDataLen: chartData.length,
+    labels: chartData.map((d) => d.label),
+  });
 
   const [active, setActive] = useState<Set<MetricKey>>(
     () => new Set(METRICS.filter((m) => m.defaultOn).map((m) => m.key))
@@ -180,7 +185,12 @@ export function EngagementChart({ data, from, to }: EngagementChartProps) {
   return (
     <div className="bg-white border rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">Engagement Over Time</h3>
+        <h3 className="text-sm font-semibold">
+          Engagement Over Time
+          <span className="text-muted-foreground font-normal ml-1 text-xs">
+            ({chartData.length} pts, from={from ?? "none"})
+          </span>
+        </h3>
       </div>
 
       {/* Metric toggles */}
@@ -223,6 +233,7 @@ export function EngagementChart({ data, from, to }: EngagementChartProps) {
             tick={{ fontSize: 11 }}
             tickLine={false}
             axisLine={false}
+            interval={0}
           />
           {/* Left Y-axis: volume */}
           <YAxis
